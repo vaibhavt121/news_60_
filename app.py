@@ -38,7 +38,7 @@ def summarise_english(text):
     words = summary.split()
     return " ".join(words[:WORD_LIMIT]) + ("…" if len(words) > WORD_LIMIT else "")
 
-@st.cache_data(ttl=900, show_spinner="Fetching news & writing summaries…")
+@st.cache_data(ttl=900, show_spinner="🔄 Fetching news & writing summaries…")
 def fetch_and_summarise(country="us", category="general", n=20):
     params = {"country": country, "category": category, "pageSize": n, "apiKey": NEWS_API_KEY}
     res = requests.get(NEWS_ENDPOINT, params=params, timeout=10)
@@ -57,12 +57,12 @@ st.caption("Bite-sized news summaries using GPT-4o-mini")
 
 # Sidebar filters
 st.sidebar.title("Filters")
-country = st.sidebar.selectbox("Country", ["us", "gb", "in", "au"], index=0)
-category = st.sidebar.selectbox("Category", ["general", "business", "technology", "sports", "science"], index=0)
+country = st.sidebar.selectbox("🌍 Country", ["us", "gb", "in", "au"], index=0)
+category = st.sidebar.selectbox("🗂️ Category", ["general", "business", "technology", "sports", "science"], index=0)
 if st.sidebar.button("🔄 Refresh News"):
     st.cache_data.clear()
 
-# CSS for layout
+# CSS Styles
 st.markdown("""
     <style>
         .news-card {
@@ -113,11 +113,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Loop through articles
+# Render news cards
 articles = fetch_and_summarise(country, category)
 
 for art, summary in articles:
-    if not art.get("title"):
+    # ✅ Skip if any required info is missing or bad
+    if (
+        not art.get("title") or
+        not art.get("url") or
+        not summary or
+        "Please provide the news" in summary
+    ):
         continue
 
     image_html = f"<img src='{art['urlToImage']}' class='news-image' />" if art.get("urlToImage") else ""
